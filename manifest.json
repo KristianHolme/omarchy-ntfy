@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "kristianholme.ntfy",
+  "name": "ntfy",
+  "version": "0.1.0",
+  "author": "KristianHolme",
+  "license": "MIT",
+  "description": "Subscribe to ntfy.sh topics, send messages, and receive them as Omarchy desktop notifications.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "activation": "on-demand",
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "Panel.qml"
+  },
+  "barWidget": {
+    "displayName": "ntfy",
+    "description": "ntfy.sh topics, message feed, and compose box in the Omarchy bar.",
+    "category": "Notifications",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
