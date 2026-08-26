@@ -1,4 +1,4 @@
-# ntfy-panel
+# omarchy-ntfy
 
 An [Omarchy](https://omarchy.org/) bar plugin for [ntfy.sh](https://ntfy.sh/). Subscribe to topics, send messages, and get incoming messages as desktop notifications without keeping the web app open.
 
@@ -7,7 +7,7 @@ Plugin id: `kristianholme.ntfy`
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/KristianHolme/ntfy-panel.git --enable
+omarchy plugin add https://github.com/KristianHolme/omarchy-ntfy.git --enable
 ```
 
 The widget defaults to the right side of the bar. Move it with:
