@@ -195,7 +195,7 @@ Panel {
 
       Column {
         id: column
-        width: parent.width
+        anchors.fill: parent
         spacing: Style.space(12)
 
         readonly property int feedCap: {
@@ -204,15 +204,19 @@ Panel {
             + (mainSep1.visible ? mainSep1.implicitHeight : 0)
             + (mainControls.visible ? mainControls.implicitHeight : 0)
             + (mainSep2.visible ? mainSep2.implicitHeight : 0)
-            + (feedFooter.visible ? feedFooter.implicitHeight : 0)
+            + feedFooter.implicitHeight
           var gaps = column.spacing * (
             (mainSep1.visible ? 1 : 0)
             + (mainControls.visible ? 1 : 0)
             + (mainSep2.visible ? 1 : 0)
+            + 1
             + (feedFooter.visible ? 1 : 0)
           )
-          return Math.max(Style.space(280),
-            panel.availableCardHeight - panel.verticalContentInset - chrome - gaps)
+          // Notification center always counts its (usually hidden) search field
+          // plus one extra gap, so the column stops short of the screen edge.
+          var reserved = Style.spacing.controlHeight + Style.space(8)
+          return Math.max(Style.space(240),
+            panel.availableCardHeight - panel.verticalContentInset - chrome - gaps - reserved)
         }
 
         Item {
