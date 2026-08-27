@@ -3,9 +3,19 @@
 An [Omarchy](https://omarchy.org/) bar plugin for [ntfy.sh](https://ntfy.sh/). Subscribe to topics, send messages, and get incoming messages as desktop notifications without keeping the web app open.
 
 Plugin id: `kristianholme.ntfy`
-## Screenshot
-<img width="2051" height="2160" alt="image" src="https://github.com/user-attachments/assets/2319360d-1a5f-4608-87ae-94e4969dc2d5" />
-
+## Screenshots
+ <img width="820" alt="Notification feed" src="https://github.com/user-attachments/assets/2319360d-1a5f-4608-87ae-94e4969dc2d5" />
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <img width="400" alt="Send" src="https://github.com/user-attachments/assets/81264b0c-52b4-4a4b-bad4-2935cf8e9cc7" />
+      </td>
+      <td align="center" width="50%">
+        <img width="400" alt="Settings" src="https://github.com/user-attachments/assets/1420b1fb-e798-4d9b-b82c-8c0bf454cce9" />
+      </td>
+    </tr>
+  </table>
+  
 ## Install
 
 ```bash
