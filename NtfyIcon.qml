@@ -47,7 +47,9 @@ Item {
   Rectangle {
     visible: root.muted
     anchors.centerIn: parent
-    width: parent.width * 1.18
+    anchors.horizontalCenterOffset: parent.width * 0.10
+    anchors.verticalCenterOffset: -parent.height * 0.10
+    width: parent.width * 1.42
     height: Math.max(2, parent.height * 0.12)
     radius: height / 2
     color: root.color
