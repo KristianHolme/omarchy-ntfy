@@ -12,6 +12,15 @@ Item {
   property color color: Color.foreground
   property bool muted: false
 
+  // Mute slash. All values are fractions of iconSize.
+  // The slash is a rounded Rectangle, rotated -45°, drawn on top of the
+  // bubble — it is not part of the SVG path. Tweak these, save, then look
+  // at the muted header icon (click the mark to mute). If the bar keeps
+  // the old stroke, run: omarchy restart shell
+  property real slashLength: 1.42      // how long the stroke is
+  property real slashThickness: 0.12   // how thick the stroke is
+  property real slashNudge: 0.10       // shift toward the upper-right
+
   width: iconSize
   height: iconSize
   implicitWidth: iconSize
@@ -47,10 +56,10 @@ Item {
   Rectangle {
     visible: root.muted
     anchors.centerIn: parent
-    anchors.horizontalCenterOffset: parent.width * 0.10
-    anchors.verticalCenterOffset: -parent.height * 0.10
-    width: parent.width * 1.42
-    height: Math.max(2, parent.height * 0.12)
+    anchors.horizontalCenterOffset: parent.width * root.slashNudge
+    anchors.verticalCenterOffset: -parent.height * root.slashNudge
+    width: parent.width * root.slashLength
+    height: Math.max(2, parent.height * root.slashThickness)
     radius: height / 2
     color: root.color
     rotation: -45
