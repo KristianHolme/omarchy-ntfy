@@ -37,7 +37,6 @@ Item {
     readonly property bool selectionMuted: Model.selectionMuted(topics, selectedTopic)
     readonly property int topicCount: topics instanceof Array ? topics.length : 0
     readonly property string heroMeta: Model.heroMeta(active, connected, muted, topicCount)
-    readonly property string barIcon: muted ? "󰂛" : "󰂚"
     readonly property var minPriorityOptions: Model.MIN_PRIORITY_OPTIONS
     readonly property var deleteAfterOptions: Model.DELETE_AFTER_OPTIONS
     readonly property var sendPriorityOptions: Model.SEND_PRIORITY_OPTIONS

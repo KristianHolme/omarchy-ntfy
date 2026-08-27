@@ -31,6 +31,13 @@ Panel {
     return sh.serviceFor("kristianholme.ntfy")
   }
   readonly property var feed: ntfy && ntfy.visibleMessages ? ntfy.visibleMessages : []
+  readonly property color iconColor: {
+    if (!ntfy || !ntfy.active)
+      return root.urgent
+    if (ntfy.muted)
+      return Color.muted
+    return root.foreground
+  }
   readonly property bool canSend: {
     if (!ntfy) return false
     var dest = ntfy.selectedTopic === "all" ? "" : ntfy.selectedTopic
@@ -116,10 +123,17 @@ Panel {
     id: button
     anchors.fill: parent
     bar: root.bar
-    text: ntfy ? ntfy.barIcon : "󰂚"
-    dimmed: !ntfy || !ntfy.active
     slotSize: Style.bar.statusSlot
     tooltipText: ""
+    iconComponent: Component {
+      Item {
+        NtfyIcon {
+          anchors.centerIn: parent
+          iconSize: Style.space(12)
+          color: root.iconColor
+        }
+      }
+    }
     onPressed: function(buttonCode) {
       if (buttonCode === Qt.RightButton) {
         if (ntfy) ntfy.setMuted(!ntfy.muted)
@@ -180,22 +194,19 @@ Panel {
             meta: root.settingsOpen ? "Notifications" : (ntfy ? ntfy.heroMeta : "Off")
             foreground: root.foreground
             fontFamily: root.fontFamily
-            iconOpacity: header.ntfyService && header.ntfyService.active ? 1.0 : 0.5
             iconComponent: Component {
               Item {
                 width: Style.font.display
                 height: Style.font.display
 
-                Text {
+                NtfyIcon {
                   anchors.centerIn: parent
-                  text: header.ntfyService ? header.ntfyService.barIcon : "󰂚"
-                  color: header.ntfyService && header.ntfyService.muted ? Qt.darker(header.fg, 1.55) : header.fg
-                  font.family: header.ff
-                  font.pixelSize: Style.font.display
+                  iconSize: Style.font.display
+                  color: root.iconColor
                 }
 
                 MouseArea {
-                  id: heroBellMouse
+                  id: heroIconMouse
                   anchors.fill: parent
                   hoverEnabled: true
                   cursorShape: Qt.PointingHandCursor
@@ -203,7 +214,7 @@ Panel {
                 }
 
                 PanelToolTip {
-                  visible: heroBellMouse.containsMouse
+                  visible: heroIconMouse.containsMouse
                   text: header.ntfyService && header.ntfyService.muted ? "Unmute system notifications" : "Mute system notifications"
                   fontFamily: header.ff
                 }
