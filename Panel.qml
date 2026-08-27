@@ -194,7 +194,6 @@ Panel {
             meta: root.settingsOpen ? "Notifications" : (ntfy ? ntfy.heroMeta : "Off")
             foreground: root.foreground
             fontFamily: root.fontFamily
-            iconOpacity: 1.0
             iconComponent: Component {
               Item {
                 width: Style.font.display
