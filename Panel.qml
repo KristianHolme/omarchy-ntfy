@@ -4,7 +4,6 @@ import Quickshell
 import Quickshell.Io
 import qs.Commons
 import qs.Ui
-import "Model.js" as Model
 
 Panel {
   id: root
@@ -150,8 +149,8 @@ Panel {
     bar: root.bar
     open: root.opened
     focusTarget: keyCatcher
-    contentWidth: panel.fittedContentWidth(Style.space(420))
-    contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(560))
+    contentWidth: panel.fittedContentWidth(Style.space(520))
+    contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(640))
 
     PanelKeyCatcher {
       id: keyCatcher
@@ -382,7 +381,7 @@ Panel {
         Item {
           visible: !root.settingsOpen
           width: parent.width
-          implicitHeight: Style.space(220)
+          implicitHeight: Style.space(300)
 
           Flickable {
             id: feedFlick
@@ -398,7 +397,7 @@ Panel {
             Column {
               id: feedColumn
               width: feedFlick.width
-              spacing: Style.space(8)
+              spacing: Style.space(10)
 
               Text {
                 width: parent.width
@@ -412,87 +411,13 @@ Panel {
               Repeater {
                 model: root.feed
 
-                delegate: Item {
+                delegate: NotificationCard {
                   width: feedColumn.width
-                  implicitHeight: msgColumn.implicitHeight + Style.space(10)
-
-                  BorderSurface {
-                    anchors.fill: parent
-                    color: msgMouse.containsMouse ? Style.hoverFillFor(root.foreground, Color.accent) : "transparent"
-                    radius: Style.cornerRadius
-                  }
-
-                  Column {
-                    id: msgColumn
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    anchors.leftMargin: Style.space(8)
-                    anchors.rightMargin: Style.space(8)
-                    spacing: Style.space(2)
-
-                    Row {
-                      width: parent.width
-                      spacing: Style.space(8)
-
-                      Text {
-                        text: modelData.topic || ""
-                        color: root.foreground
-                        font.family: root.fontFamily
-                        font.pixelSize: Style.font.caption
-                        font.bold: true
-                      }
-
-                      Text {
-                        text: modelData.title || ""
-                        width: Math.max(0, parent.width - 140)
-                        color: root.foreground
-                        font.family: root.fontFamily
-                        font.pixelSize: Style.font.caption
-                        elide: Text.ElideRight
-                      }
-
-                      Item {
-                        width: Math.max(0, parent.width - parent.children[0].width - parent.children[1].width - timeText.implicitWidth - parent.spacing * 3)
-                        height: 1
-                      }
-
-                      Text {
-                        id: timeText
-                        text: Model.formatWhen(modelData.time)
-                        color: Qt.darker(root.foreground, 1.5)
-                        font.family: root.fontFamily
-                        font.pixelSize: Style.font.caption
-                      }
-                    }
-
-                    Text {
-                      width: parent.width
-                      text: modelData.message || ""
-                      visible: text !== ""
-                      color: Qt.darker(root.foreground, 1.15)
-                      font.family: root.fontFamily
-                      font.pixelSize: Style.font.body
-                      wrapMode: Text.WordWrap
-                    }
-
-                    Text {
-                      width: parent.width
-                      visible: modelData.tags && modelData.tags.length
-                      text: modelData.tags ? modelData.tags.join("  ") : ""
-                      color: Qt.darker(root.foreground, 1.45)
-                      font.family: root.fontFamily
-                      font.pixelSize: Style.font.caption
-                    }
-                  }
-
-                  MouseArea {
-                    id: msgMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: modelData.click ? Qt.PointingHandCursor : Qt.ArrowCursor
-                    onClicked: if (ntfy && modelData.click) ntfy.openClick(modelData.click)
-                  }
+                  ntfy: root.ntfy
+                  msg: modelData
+                  foreground: root.foreground
+                  urgent: root.urgent
+                  fontFamily: root.fontFamily
                 }
               }
             }

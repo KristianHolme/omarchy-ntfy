@@ -30,6 +30,8 @@ Item {
     property var outgoingIds: ({})
     property var notifiedIds: ({})
     property int reconnectMs: 400
+    property var httpQueue: []
+    property var httpCurrent: null
 
     readonly property var allTopicNames: Model.topicNames(topics)
     readonly property var topicChoices: Model.topicOptions(topics)
@@ -131,8 +133,8 @@ Item {
         if (notifiedIds[msg.id]) return
         notifiedIds[msg.id] = true
         if (!Model.shouldNotify(msg, active, muted, topics, minPriority)) return
-        var title = msg.title || msg.topic || "ntfy"
-        var body = msg.message || ""
+        var title = Model.displayTitle(msg) || msg.topic || "ntfy"
+        var body = Model.displayMessage(msg)
         var args = [
             "omarchy-notification-send",
             "--app-name", "ntfy",
@@ -296,6 +298,78 @@ Item {
         Quickshell.execDetached(["xdg-open", url])
     }
 
+    function clearMessage(id) {
+        var next = Model.removeMessage(messages, String(id || ""))
+        if (next.length === (messages instanceof Array ? messages.length : 0)) return
+        messages = next
+        scheduleSave()
+    }
+
+    function copyText(value) {
+        var text = String(value || "")
+        if (!text) return false
+        Quickshell.execDetached(["sh", "-c", "printf %s \"$1\" | wl-copy", "ntfy-copy", text])
+        return true
+    }
+
+    function runAction(msgId, action) {
+        if (!action) return
+        var kind = String(action.action || "")
+        if (kind === "broadcast") {
+            lastError = "Broadcast actions are Android-only."
+            return
+        }
+        if (kind === "view") {
+            openClick(action.url)
+            if (action.clear) clearMessage(msgId)
+            return
+        }
+        if (kind === "copy") {
+            if (!copyText(Model.copyValue(action))) return
+            if (action.clear) clearMessage(msgId)
+            return
+        }
+        if (kind === "http") {
+            enqueueHttpAction(msgId, action)
+            return
+        }
+    }
+
+    function enqueueHttpAction(msgId, action) {
+        var cmd = Model.httpActionCommand(action)
+        if (!cmd.length) {
+            lastError = "Action URL is missing."
+            return
+        }
+        var job = { msgId: String(msgId || ""), action: action, cmd: cmd }
+        if (httpProc.running || httpCurrent) {
+            httpQueue = httpQueue.concat([job])
+            return
+        }
+        startHttpAction(job)
+    }
+
+    function startHttpAction(job) {
+        if (!job || !job.cmd || !job.cmd.length) return
+        httpCurrent = job
+        lastError = ""
+        httpProc.command = job.cmd
+        httpProc.running = true
+    }
+
+    function finishHttpAction(ok, detail) {
+        var job = httpCurrent
+        httpCurrent = null
+        if (!job) return
+        if (!ok) lastError = detail || "Action failed"
+        else if (job.action && job.action.clear) clearMessage(job.msgId)
+        if (httpQueue.length) {
+            var next = httpQueue[0]
+            httpQueue = httpQueue.slice(1)
+            Qt.callLater(function() { root.startHttpAction(next) })
+        }
+    }
+
     function pollHistory(names) {
         if (!active) return
         var list = names instanceof Array && names.length ? names : allTopicNames
@@ -309,6 +383,9 @@ Item {
         reconnectTimer.stop()
         streamProc.running = false
         pollProc.running = false
+        httpQueue = []
+        httpCurrent = null
+        httpProc.running = false
         if (publishProc.running) {
             publishProc.running = false
             publishing = false
@@ -428,6 +505,29 @@ Item {
         onExited: function(code) {
             if (!root.active) return
             if (code !== 0 && pollErr.text) root.lastError = String(pollErr.text).trim()
+        }
+    }
+
+    Process {
+        id: httpProc
+        stdout: StdioCollector {
+            id: httpOut
+            waitForEnd: true
+        }
+        stderr: StdioCollector {
+            id: httpErr
+            waitForEnd: true
+        }
+        onExited: function(code) {
+            var status = String(httpOut.text || "").trim()
+            var ok = code === 0 && /^2\d\d$/.test(status)
+            var detail = ""
+            if (!ok) {
+                if (httpErr.text) detail = String(httpErr.text).trim()
+                else if (status) detail = "Action returned HTTP " + status
+                else detail = "Action failed"
+            }
+            root.finishHttpAction(ok, detail)
         }
     }
 
