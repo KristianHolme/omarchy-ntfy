@@ -44,6 +44,11 @@ Panel {
     var dest = ntfy.selectedTopic === "all" ? "" : ntfy.selectedTopic
     return ntfy.active && dest !== "" && String(sendMessage).trim() !== "" && !ntfy.publishing
   }
+  readonly property string sendTopicValue: {
+    if (!ntfy || ntfy.topicCount === 0) return ""
+    if (ntfy.selectedTopic !== "all") return ntfy.selectedTopic
+    return ntfy.allTopicNames.length ? ntfy.allTopicNames[0] : ""
+  }
 
   function bindFocus() {
     Qt.callLater(function() { if (keyCatcher) keyCatcher.forceActiveFocus() })
@@ -125,7 +130,7 @@ Panel {
     settingsOpen = false
     sendOpen = false
     confirmDelete = false
-    if (feedFlick) feedFlick.contentY = 0
+    if (feedList) feedList.contentY = 0
     bindFocus()
   }
 
@@ -170,7 +175,7 @@ Panel {
     open: root.opened
     focusTarget: keyCatcher
     contentWidth: panel.fittedContentWidth(Style.space(560))
-    contentHeight: panel.fittedContentHeight(column.implicitHeight)
+    contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(880))
 
     PanelKeyCatcher {
       id: keyCatcher
@@ -185,12 +190,12 @@ Panel {
       onTabRequested: function(direction) { root.switchPanel(direction) }
       onMoveRequested: function(dx, dy) {
         if (!root.mainView) return
-        feedFlick.flick(0, dy > 0 ? -900 : 900)
+        feedList.flick(0, dy > 0 ? -900 : 900)
       }
 
       Column {
         id: column
-        width: parent.width
+        anchors.fill: parent
         spacing: Style.space(12)
 
         Item {
@@ -452,8 +457,8 @@ Panel {
             visible: ntfy && ntfy.active && ntfy.topicCount > 0
             showLabel: false
             label: ""
-            value: ntfy ? ntfy.selectedTopic : ""
-            options: ntfy ? ntfy.topicChoices.filter(function(o) { return o.value !== "all" }) : []
+            value: root.sendTopicValue
+            options: ntfy ? ntfy.sendTopicChoices : []
             foreground: root.foreground
             fontFamily: root.fontFamily
             onChanged: function(value) { if (ntfy) ntfy.setSelectedTopic(value) }
@@ -535,9 +540,19 @@ Panel {
           foreground: root.foreground
         }
 
-        Item {
-          id: feedHost
-          visible: root.mainView
+        Text {
+          id: emptyFeed
+          visible: root.mainView && root.feed.length === 0
+          width: parent.width
+          text: ntfy && !ntfy.active ? "ntfy is off." : (ntfy && ntfy.topicCount === 0 ? "No topics yet." : "No messages yet.")
+          color: Qt.darker(root.foreground, 1.45)
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.body
+        }
+
+        ListView {
+          id: feedList
+          visible: root.mainView && root.feed.length > 0
           width: parent.width
           readonly property int cap: {
             var chrome = hero.implicitHeight
@@ -545,56 +560,34 @@ Panel {
               + (mainControls.visible ? mainControls.implicitHeight : 0)
               + (mainSep2.visible ? mainSep2.implicitHeight : 0)
               + (feedFooter.visible ? feedFooter.implicitHeight : 0)
+              + (emptyFeed.visible ? emptyFeed.implicitHeight : 0)
             var gaps = column.spacing * (
               (mainSep1.visible ? 1 : 0)
               + (mainControls.visible ? 1 : 0)
               + (mainSep2.visible ? 1 : 0)
+              + (emptyFeed.visible ? 1 : 0)
               + (feedFooter.visible ? 1 : 0)
             )
             return Math.max(Style.space(280),
               panel.availableCardHeight - panel.verticalContentInset - chrome - gaps)
           }
-          implicitHeight: root.mainView ? Math.min(feedColumn.implicitHeight, cap) : 0
-          height: implicitHeight
+          height: Math.min(contentHeight, cap)
+          clip: true
+          model: root.feed
+          spacing: Style.space(10)
+          boundsBehavior: Flickable.StopAtBounds
+          flickableDirection: Flickable.VerticalFlick
+          interactive: contentHeight > height
+          ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
 
-          Flickable {
-            id: feedFlick
-            anchors.fill: parent
-            contentWidth: width
-            contentHeight: feedColumn.implicitHeight
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            flickableDirection: Flickable.VerticalFlick
-            interactive: contentHeight > height
-            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
-
-            Column {
-              id: feedColumn
-              width: feedFlick.width
-              spacing: Style.space(10)
-
-              Text {
-                width: parent.width
-                visible: root.feed.length === 0
-                text: ntfy && !ntfy.active ? "ntfy is off." : (ntfy && ntfy.topicCount === 0 ? "No topics yet." : "No messages yet.")
-                color: Qt.darker(root.foreground, 1.45)
-                font.family: root.fontFamily
-                font.pixelSize: Style.font.body
-              }
-
-              Repeater {
-                model: root.feed
-
-                delegate: NotificationCard {
-                  width: feedColumn.width
-                  ntfy: root.ntfy
-                  msg: modelData
-                  foreground: root.foreground
-                  urgent: root.urgent
-                  fontFamily: root.fontFamily
-                }
-              }
-            }
+          delegate: NotificationCard {
+            required property var modelData
+            width: feedList.width
+            ntfy: root.ntfy
+            msg: modelData
+            foreground: root.foreground
+            urgent: root.urgent
+            fontFamily: root.fontFamily
           }
         }
 

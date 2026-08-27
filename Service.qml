@@ -35,6 +35,7 @@ Item {
 
     readonly property var allTopicNames: Model.topicNames(topics)
     readonly property var topicChoices: Model.topicOptions(topics)
+    readonly property var sendTopicChoices: Model.sendTopicOptions(topics)
     readonly property var visibleMessages: Model.feedMessages(messages, selectedTopic)
     readonly property bool selectionMuted: Model.selectionMuted(topics, selectedTopic)
     readonly property int topicCount: topics instanceof Array ? topics.length : 0
@@ -393,6 +394,8 @@ Item {
         connected = false
         connecting = false
     }
+
+    Component.onDestruction: stopActivity()
 
     function restartStream() {
         reconnectTimer.stop()

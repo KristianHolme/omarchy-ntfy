@@ -183,6 +183,17 @@ function topicOptions(topics) {
     return options
 }
 
+function sendTopicOptions(topics) {
+    var options = []
+    var list = topics instanceof Array ? topics : []
+    for (var i = 0; i < list.length; i++) {
+        if (!list[i] || !list[i].name) continue
+        var mark = list[i].muted === true ? " (muted)" : ""
+        options.push({ value: list[i].name, label: list[i].name + mark })
+    }
+    return options
+}
+
 function selectionMuted(topics, selectedTopic) {
     var list = topics instanceof Array ? topics : []
     if (list.length === 0) return false
