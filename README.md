@@ -31,8 +31,8 @@ omarchy plugin remove kristianholme.ntfy
 ## Usage
 
 - Left-click the bar icon to open the panel.
-- Right-click the bar icon, or click the ntfy mark in the panel header, to mute system notifications. The live feed still updates. The mark is the official ntfy speech bubble with a `<_` prompt, so it does not collide with other notification bells.
-- The header switch turns the service off completely: no stream, no send, no notifications.
+- Right-click the bar icon, or click the ntfy mark in the panel header, to mute system notifications. The live feed still updates. Muted uses the theme muted color.
+- The header switch turns the service off completely: no stream, no send, no notifications. Off uses the theme urgent/red color.
 - Mute next to the topic picker silences one topic, or every topic when **All** is selected.
 
 Topic names are the secret. This plugin talks to the public `https://ntfy.sh` server and does not store credentials.

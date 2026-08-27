@@ -31,6 +31,13 @@ Panel {
     return sh.serviceFor("kristianholme.ntfy")
   }
   readonly property var feed: ntfy && ntfy.visibleMessages ? ntfy.visibleMessages : []
+  readonly property color iconColor: {
+    if (!ntfy || !ntfy.active)
+      return root.urgent
+    if (ntfy.muted)
+      return Color.muted
+    return root.foreground
+  }
   readonly property bool canSend: {
     if (!ntfy) return false
     var dest = ntfy.selectedTopic === "all" ? "" : ntfy.selectedTopic
@@ -116,7 +123,6 @@ Panel {
     id: button
     anchors.fill: parent
     bar: root.bar
-    dimmed: !ntfy || !ntfy.active
     slotSize: Style.bar.statusSlot
     tooltipText: ""
     iconComponent: Component {
@@ -124,8 +130,7 @@ Panel {
         NtfyIcon {
           anchors.centerIn: parent
           iconSize: Style.space(12)
-          color: ntfy && ntfy.muted ? Qt.darker(root.foreground, 1.55) : root.foreground
-          muted: ntfy && ntfy.muted
+          color: root.iconColor
         }
       }
     }
@@ -189,7 +194,7 @@ Panel {
             meta: root.settingsOpen ? "Notifications" : (ntfy ? ntfy.heroMeta : "Off")
             foreground: root.foreground
             fontFamily: root.fontFamily
-            iconOpacity: header.ntfyService && header.ntfyService.active ? 1.0 : 0.5
+            iconOpacity: 1.0
             iconComponent: Component {
               Item {
                 width: Style.font.display
@@ -198,8 +203,7 @@ Panel {
                 NtfyIcon {
                   anchors.centerIn: parent
                   iconSize: Style.font.display
-                  color: header.ntfyService && header.ntfyService.muted ? Qt.darker(header.fg, 1.55) : header.fg
-                  muted: header.ntfyService && header.ntfyService.muted
+                  color: root.iconColor
                 }
 
                 MouseArea {
