@@ -175,7 +175,7 @@ Panel {
     open: root.opened
     focusTarget: keyCatcher
     contentWidth: panel.fittedContentWidth(Style.space(560))
-    contentHeight: panel.fittedContentHeight(column.implicitHeight, Style.space(880))
+    contentHeight: panel.fittedContentHeight(column.implicitHeight)
 
     PanelKeyCatcher {
       id: keyCatcher
@@ -195,8 +195,25 @@ Panel {
 
       Column {
         id: column
-        anchors.fill: parent
+        width: parent.width
         spacing: Style.space(12)
+
+        readonly property int feedCap: {
+          if (!root.mainView) return 0
+          var chrome = header.implicitHeight
+            + (mainSep1.visible ? mainSep1.implicitHeight : 0)
+            + (mainControls.visible ? mainControls.implicitHeight : 0)
+            + (mainSep2.visible ? mainSep2.implicitHeight : 0)
+            + (feedFooter.visible ? feedFooter.implicitHeight : 0)
+          var gaps = column.spacing * (
+            (mainSep1.visible ? 1 : 0)
+            + (mainControls.visible ? 1 : 0)
+            + (mainSep2.visible ? 1 : 0)
+            + (feedFooter.visible ? 1 : 0)
+          )
+          return Math.max(Style.space(280),
+            panel.availableCardHeight - panel.verticalContentInset - chrome - gaps)
+        }
 
         Item {
           id: header
@@ -554,24 +571,7 @@ Panel {
           id: feedList
           visible: root.mainView && root.feed.length > 0
           width: parent.width
-          readonly property int cap: {
-            var chrome = hero.implicitHeight
-              + (mainSep1.visible ? mainSep1.implicitHeight : 0)
-              + (mainControls.visible ? mainControls.implicitHeight : 0)
-              + (mainSep2.visible ? mainSep2.implicitHeight : 0)
-              + (feedFooter.visible ? feedFooter.implicitHeight : 0)
-              + (emptyFeed.visible ? emptyFeed.implicitHeight : 0)
-            var gaps = column.spacing * (
-              (mainSep1.visible ? 1 : 0)
-              + (mainControls.visible ? 1 : 0)
-              + (mainSep2.visible ? 1 : 0)
-              + (emptyFeed.visible ? 1 : 0)
-              + (feedFooter.visible ? 1 : 0)
-            )
-            return Math.max(Style.space(280),
-              panel.availableCardHeight - panel.verticalContentInset - chrome - gaps)
-          }
-          height: Math.min(contentHeight, cap)
+          height: Math.min(contentHeight, column.feedCap)
           clip: true
           model: root.feed
           spacing: Style.space(10)
