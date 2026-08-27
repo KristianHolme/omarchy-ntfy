@@ -17,7 +17,7 @@
   },
   "barWidget": {
     "displayName": "ntfy",
-    "description": "ntfy.sh topics, message feed, and compose box in the Omarchy bar.",
+    "description": "ntfy.sh topics and notification feed in the Omarchy bar.",
     "category": "Notifications",
     "allowMultiple": false,
     "defaultSection": "right"
