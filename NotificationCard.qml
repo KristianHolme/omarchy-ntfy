@@ -37,9 +37,13 @@ Item {
 
   onMsgChanged: moreOpen = false
 
+  HoverHandler {
+    id: cardHover
+  }
+
   BorderSurface {
     anchors.fill: parent
-    color: msgMouse.containsMouse ? Style.hoverFillFor(root.foreground, Color.accent) : "transparent"
+    color: cardHover.hovered ? Style.hoverFillFor(root.foreground, Color.accent) : "transparent"
     radius: Style.cornerRadius
   }
 
