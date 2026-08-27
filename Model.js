@@ -1,8 +1,11 @@
 .pragma library
+.import "Emojis.js" as Emojis
 
 var TOPIC_RE = /^[-_A-Za-z0-9]{1,64}$/
 var MESSAGE_CAP = 200
 var SERVER = "https://ntfy.sh"
+var INLINE_ACTION_LIMIT = 2
+var IMAGE_NAME_RE = /\.(jpe?g|png|gif|webp|bmp|svg)(\?|#|$)/i
 
 var MIN_PRIORITY_OPTIONS = [
     { value: "1", label: "Any priority" },
@@ -212,8 +215,195 @@ function normalizeMessage(raw) {
         message: String(raw.message || ""),
         priority: clampPriority(raw.priority, 3),
         tags: tags,
-        click: String(raw.click || "")
+        click: String(raw.click || ""),
+        icon: safeClickUrl(raw.icon),
+        markdown: raw.markdown === true || String(raw.content_type || "").toLowerCase() === "text/markdown",
+        attachment: normalizeAttachment(raw.attachment),
+        actions: normalizeActions(raw.actions)
     }
+}
+
+function normalizeAttachment(raw) {
+    if (!raw || typeof raw !== "object") return null
+    var url = safeClickUrl(raw.url)
+    if (!url) return null
+    return {
+        name: String(raw.name || ""),
+        url: url,
+        type: String(raw.type || ""),
+        size: parseInt(raw.size, 10) || 0,
+        expires: parseInt(raw.expires, 10) || 0
+    }
+}
+
+function normalizeActions(raw) {
+    var list = []
+    var rows = raw instanceof Array ? raw : []
+    for (var i = 0; i < rows.length; i++) {
+        var action = normalizeAction(rows[i])
+        if (action) list.push(action)
+    }
+    return list
+}
+
+function normalizeAction(raw) {
+    if (!raw || typeof raw !== "object") return null
+    var kind = String(raw.action || "").toLowerCase()
+    if (kind !== "view" && kind !== "http" && kind !== "copy" && kind !== "broadcast") return null
+    var label = String(raw.label || "").trim()
+    if (!label) return null
+    var url = String(raw.url || "")
+    var value = String(raw.value !== undefined && raw.value !== null ? raw.value : url)
+    if (kind === "view" && !safeClickUrl(url)) return null
+    if (kind === "http" && !safeClickUrl(url)) return null
+    if (kind === "copy" && !value) return null
+    var method = String(raw.method || "POST").toUpperCase()
+    if (!method) method = "POST"
+    var headers = {}
+    if (raw.headers && typeof raw.headers === "object") {
+        for (var key in raw.headers) {
+            headers[String(key)] = String(raw.headers[key])
+        }
+    }
+    return {
+        id: String(raw.id || ""),
+        action: kind,
+        label: label,
+        url: url,
+        value: value,
+        clear: raw.clear === true,
+        method: method,
+        body: raw.body !== undefined && raw.body !== null ? String(raw.body) : "",
+        headers: headers,
+        intent: String(raw.intent || "")
+    }
+}
+
+function isImageAttachment(att) {
+    if (!att || !att.url) return false
+    var type = String(att.type || "").toLowerCase()
+    if (type.indexOf("image/") === 0) return true
+    if (IMAGE_NAME_RE.test(String(att.name || ""))) return true
+    return IMAGE_NAME_RE.test(String(att.url || ""))
+}
+
+function emojiForTag(tag) {
+    return Emojis.lookup(tag)
+}
+
+function emojiPrefix(tags) {
+    var list = tags instanceof Array ? tags : []
+    var parts = []
+    for (var i = 0; i < list.length; i++) {
+        var emoji = emojiForTag(list[i])
+        if (emoji) parts.push(emoji)
+    }
+    return parts.join("")
+}
+
+function textTags(tags) {
+    var list = tags instanceof Array ? tags : []
+    var parts = []
+    for (var i = 0; i < list.length; i++) {
+        if (!emojiForTag(list[i])) parts.push(String(list[i]))
+    }
+    return parts
+}
+
+function displayTitle(msg) {
+    var prefix = emojiPrefix(msg && msg.tags)
+    var title = msg && msg.title ? String(msg.title) : ""
+    if (prefix && title) return prefix + " " + title
+    return title
+}
+
+function displayMessage(msg) {
+    var body = msg && msg.message ? String(msg.message) : ""
+    var title = msg && msg.title ? String(msg.title) : ""
+    if (title) return body
+    var prefix = emojiPrefix(msg && msg.tags)
+    if (prefix && body) return prefix + " " + body
+    if (prefix) return prefix
+    return body
+}
+
+function cardActions(msg) {
+    var actions = []
+    var rows = msg && msg.actions instanceof Array ? msg.actions : []
+    for (var i = 0; i < rows.length; i++) {
+        if (rows[i]) actions.push(rows[i])
+    }
+    if (actions.length === 0) {
+        var click = safeClickUrl(msg && msg.click)
+        if (click) {
+            actions.push({
+                id: "",
+                action: "view",
+                label: "Open",
+                url: click,
+                value: click,
+                clear: false,
+                method: "GET",
+                body: "",
+                headers: {},
+                intent: ""
+            })
+        }
+    }
+    var att = msg && msg.attachment
+    if (att && att.url && !isImageAttachment(att)) {
+        var named = String(att.name || "File")
+        actions.push({
+            id: "",
+            action: "view",
+            label: named,
+            url: att.url,
+            value: att.url,
+            clear: false,
+            method: "GET",
+            body: "",
+            headers: {},
+            intent: ""
+        })
+    }
+    return actions
+}
+
+function inlineActions(actions) {
+    var list = actions instanceof Array ? actions : []
+    if (list.length <= INLINE_ACTION_LIMIT) return list
+    return list.slice(0, INLINE_ACTION_LIMIT)
+}
+
+function overflowActions(actions) {
+    var list = actions instanceof Array ? actions : []
+    if (list.length <= INLINE_ACTION_LIMIT) return []
+    return list.slice(INLINE_ACTION_LIMIT)
+}
+
+function actionEnabled(action) {
+    if (!action) return false
+    return action.action !== "broadcast"
+}
+
+function copyValue(action) {
+    if (!action) return ""
+    return String(action.value || action.url || "")
+}
+
+function httpActionCommand(action) {
+    var url = safeClickUrl(action && action.url)
+    if (!url) return []
+    var method = String(action.method || "POST").toUpperCase()
+    if (!method) method = "POST"
+    var cmd = ["curl", "-sS", "-o", "/dev/null", "-w", "%{http_code}", "--max-time", "20", "-X", method]
+    var headers = action && action.headers && typeof action.headers === "object" ? action.headers : {}
+    for (var key in headers) {
+        cmd.push("-H", String(key) + ": " + String(headers[key]))
+    }
+    if (action && action.body) cmd.push("--data-binary", String(action.body))
+    cmd.push(url)
+    return cmd
 }
 
 function parseJsonLines(raw) {
@@ -323,8 +513,12 @@ function formatWhen(unix) {
 }
 
 function tagsLabel(tags) {
-    if (!(tags instanceof Array) || tags.length === 0) return ""
-    return tags.join("  ")
+    var prefix = emojiPrefix(tags)
+    var rest = textTags(tags)
+    var bits = []
+    if (prefix) bits.push(prefix)
+    if (rest.length) bits.push(rest.join("  "))
+    return bits.join("  ")
 }
 
 function streamUrl(topicList) {
