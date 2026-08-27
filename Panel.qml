@@ -116,10 +116,19 @@ Panel {
     id: button
     anchors.fill: parent
     bar: root.bar
-    text: ntfy ? ntfy.barIcon : "󰂚"
     dimmed: !ntfy || !ntfy.active
     slotSize: Style.bar.statusSlot
     tooltipText: ""
+    iconComponent: Component {
+      Item {
+        NtfyIcon {
+          anchors.centerIn: parent
+          iconSize: Style.space(12)
+          color: ntfy && ntfy.muted ? Qt.darker(root.foreground, 1.55) : root.foreground
+          muted: ntfy && ntfy.muted
+        }
+      }
+    }
     onPressed: function(buttonCode) {
       if (buttonCode === Qt.RightButton) {
         if (ntfy) ntfy.setMuted(!ntfy.muted)
@@ -186,16 +195,15 @@ Panel {
                 width: Style.font.display
                 height: Style.font.display
 
-                Text {
+                NtfyIcon {
                   anchors.centerIn: parent
-                  text: header.ntfyService ? header.ntfyService.barIcon : "󰂚"
+                  iconSize: Style.font.display
                   color: header.ntfyService && header.ntfyService.muted ? Qt.darker(header.fg, 1.55) : header.fg
-                  font.family: header.ff
-                  font.pixelSize: Style.font.display
+                  muted: header.ntfyService && header.ntfyService.muted
                 }
 
                 MouseArea {
-                  id: heroBellMouse
+                  id: heroIconMouse
                   anchors.fill: parent
                   hoverEnabled: true
                   cursorShape: Qt.PointingHandCursor
@@ -203,7 +211,7 @@ Panel {
                 }
 
                 PanelToolTip {
-                  visible: heroBellMouse.containsMouse
+                  visible: heroIconMouse.containsMouse
                   text: header.ntfyService && header.ntfyService.muted ? "Unmute system notifications" : "Mute system notifications"
                   fontFamily: header.ff
                 }
