@@ -4,7 +4,7 @@
 var TOPIC_RE = /^[-_A-Za-z0-9]{1,64}$/
 var MESSAGE_CAP = 200
 var SERVER = "https://ntfy.sh"
-var INLINE_ACTION_LIMIT = 2
+var INLINE_ACTION_LIMIT = 6
 var IMAGE_NAME_RE = /\.(jpe?g|png|gif|webp|bmp|svg)(\?|#|$)/i
 
 var MIN_PRIORITY_OPTIONS = [
@@ -327,44 +327,56 @@ function displayMessage(msg) {
     return body
 }
 
+function attachmentExpired(att) {
+    if (!att || !att.expires) return false
+    return att.expires < nowSec()
+}
+
+function syntheticCopyAction(label, value) {
+    return {
+        id: "",
+        action: "copy",
+        label: label,
+        url: "",
+        value: value,
+        clear: false,
+        method: "GET",
+        body: "",
+        headers: {},
+        intent: ""
+    }
+}
+
+function syntheticViewAction(label, url) {
+    return {
+        id: "",
+        action: "view",
+        label: label,
+        url: url,
+        value: url,
+        clear: false,
+        method: "GET",
+        body: "",
+        headers: {},
+        intent: ""
+    }
+}
+
 function cardActions(msg) {
     var actions = []
+    var att = msg && msg.attachment
+    if (att && att.url && !attachmentExpired(att)) {
+        actions.push(syntheticCopyAction("Copy URL", att.url))
+        actions.push(syntheticViewAction("Open attachment", att.url))
+    }
+    var click = safeClickUrl(msg && msg.click)
+    if (click) {
+        actions.push(syntheticCopyAction("Copy link", click))
+        actions.push(syntheticViewAction("Open link", click))
+    }
     var rows = msg && msg.actions instanceof Array ? msg.actions : []
     for (var i = 0; i < rows.length; i++) {
         if (rows[i]) actions.push(rows[i])
-    }
-    if (actions.length === 0) {
-        var click = safeClickUrl(msg && msg.click)
-        if (click) {
-            actions.push({
-                id: "",
-                action: "view",
-                label: "Open",
-                url: click,
-                value: click,
-                clear: false,
-                method: "GET",
-                body: "",
-                headers: {},
-                intent: ""
-            })
-        }
-    }
-    var att = msg && msg.attachment
-    if (att && att.url && !isImageAttachment(att)) {
-        var named = String(att.name || "File")
-        actions.push({
-            id: "",
-            action: "view",
-            label: named,
-            url: att.url,
-            value: att.url,
-            clear: false,
-            method: "GET",
-            body: "",
-            headers: {},
-            intent: ""
-        })
     }
     return actions
 }
