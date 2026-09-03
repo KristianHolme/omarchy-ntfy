@@ -1,7 +1,7 @@
 import QtQuick
 import qs.Commons
 
-// Generic notification bell from the theme icon font (not the ntfy.sh trademark).
+// Generic message bubble from the theme icon font (not the ntfy.sh trademark).
 Item {
   id: root
 
@@ -15,7 +15,7 @@ Item {
 
   Text {
     anchors.centerIn: parent
-    text: "󰂚"
+    text: "󰍡"
     font.family: Style.font.family
     font.pixelSize: root.iconSize
     color: root.color
