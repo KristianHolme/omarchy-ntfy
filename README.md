@@ -4,18 +4,18 @@ An [Omarchy](https://omarchy.org/) bar plugin for [ntfy.sh](https://ntfy.sh/). S
 
 Plugin id: `kristianholme.ntfy`
 ## Screenshots
- <img width="820" alt="Notification feed" src="https://github.com/user-attachments/assets/2319360d-1a5f-4608-87ae-94e4969dc2d5" />
+<img width="2045" height="2160" alt="image" src="https://github.com/user-attachments/assets/6bc61fb6-95c4-4d6c-9247-c0d9786528b8" />
   <table>
     <tr>
       <td align="center" width="50%">
-        <img width="400" alt="Send" src="https://github.com/user-attachments/assets/81264b0c-52b4-4a4b-bad4-2935cf8e9cc7" />
+        <img width="999" height="563" alt="ntfy-send" src="https://github.com/user-attachments/assets/6054d06a-9dcf-4e88-be29-f4be04f9ba19" />
       </td>
       <td align="center" width="50%">
-        <img width="400" alt="Settings" src="https://github.com/user-attachments/assets/1420b1fb-e798-4d9b-b82c-8c0bf454cce9" />
+       <img width="1010" height="436" alt="ntfy-settings" src="https://github.com/user-attachments/assets/a533b197-0ac0-4819-ba47-298862d1562a" />
       </td>
     </tr>
   </table>
-  
+
 ## Install
 
 ```bash
