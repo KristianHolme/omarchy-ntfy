@@ -44,8 +44,7 @@ omarchy plugin remove kristianholme.ntfy
 
 - Left-click the bar icon to open the panel.
 - The feed shows titles with emoji tags, image attachments, priority, click links, and action buttons (`view`, `http`, `copy`). Android-only `broadcast` actions stay disabled.
-- Right-click the bar icon, or click the ntfy mark in the panel header, to mute system notifications. The live feed still updates. Muted uses the theme muted color.
-- Right-click the bar icon, or click the ntfy mark in the panel header, to mute system notifications. The live feed still updates. Muted uses the theme muted color.
+- Right-click the bar icon, or click the bell icon in the panel header, to mute system notifications. The live feed still updates. Muted uses the theme muted color.
 - The header switch turns the service off completely: no stream, no send, no notifications. Off uses the theme urgent/red color.
 - Mute next to the topic picker silences one topic, or every topic when **All** is selected.
 
